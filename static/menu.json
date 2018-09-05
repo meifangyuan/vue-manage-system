@@ -1,0 +1,33 @@
+{
+    "list":
+    [
+        {
+            "id": "1",
+            "name": "系统管理",
+            "url": "system",
+            "pid": "0",
+            "order": "1"
+        },
+        {
+            "id": "2",
+            "name": "菜单管理",
+            "url": "menu",
+            "pid": "1",
+            "order": "2"
+        },
+        {
+            "id": "3",
+            "name": "角色管理",
+            "url": "role",
+            "pid": "1",
+            "order": "3"
+        },
+        {
+            "id": "4",
+            "name": "用户管理",
+            "url": "user",
+            "pid": "1",
+            "order": "4"
+        }
+    ]
+}
