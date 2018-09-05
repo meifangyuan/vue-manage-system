@@ -44,6 +44,25 @@
                         title: '系统首页'
                     },
                     {
+                        icon: 'el-icon-date',
+                        index: 'system',
+                        title: '系统管理',
+                        subs: [
+                            {
+                                index: 'menu',
+                                title: '菜单管理'
+                            },
+                            {
+                                index: 'role',
+                                title: '角色管理'
+                            },
+                            {
+                                index: 'user',
+                                title: '用户管理'
+                            }
+                        ]
+                    },
+                    {
                         icon: 'el-icon-tickets',
                         index: 'table',
                         title: '基础表格'
