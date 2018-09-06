@@ -3,12 +3,17 @@ import App from './App';
 import router from './router';
 import axios from 'axios';
 import ElementUI from 'element-ui';
+import iView from 'iview';
+import 'iview/dist/styles/iview.css';
 import 'element-ui/lib/theme-chalk/index.css';    // 默认主题
 // import '../static/css/theme-green/index.css';       // 浅绿色主题
 import "babel-polyfill";
+import global_ from './components/common/Global';
 
+Vue.use(iView);
 Vue.use(ElementUI, { size: 'small' });
 Vue.prototype.$axios = axios;
+Vue.prototype.$GLOBAL = global_; //挂载到Vue实例上面
 
 //使用钩子函数对路由进行权限跳转
 router.beforeEach((to, from, next) => {
