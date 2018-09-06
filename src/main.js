@@ -12,8 +12,8 @@ import global_ from './components/common/Global';
 
 Vue.use(iView);
 Vue.use(ElementUI, { size: 'small' });
-Vue.prototype.$axios = axios;
-Vue.prototype.$GLOBAL = global_; //挂载到Vue实例上面
+Vue.prototype.axios = axios;
+Vue.prototype.GLOBAL = global_; //挂载到Vue实例上面
 
 //使用钩子函数对路由进行权限跳转
 router.beforeEach((to, from, next) => {

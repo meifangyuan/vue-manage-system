@@ -1,6 +1,6 @@
 <script>
 
-    const hostUrl = 'http://localhost:8081/blog/';
+    const hostUrl = 'http://localhost:8080/blog/';
 
     // 菜单管理接口
     const menu_add_url = hostUrl + 'sys/menu/add';

@@ -46,8 +46,8 @@
                 </Row>
                 <Row>
                     <Col span="12">
-                    <Form-item label="父类ID:" prop="parentId">
-                        <Input v-model="menuNew.parentId" style="width: 204px"/>
+                    <Form-item label="父类ID:" prop="pid">
+                        <Input v-model="menuNew.pid" style="width: 204px"/>
                     </Form-item>
                     </Col>
                     <Col span="12">
@@ -85,8 +85,8 @@
                 </Row>
                 <Row>
                     <Col span="12">
-                    <Form-item label="父类ID:" prop="parentId">
-                        <Input v-model="menuModify.parentId" style="width: 204px"/>
+                    <Form-item label="父类ID:" prop="pid">
+                        <Input v-model="menuModify.pid" style="width: 204px"/>
                     </Form-item>
                     </Col>
                     <Col span="12">
@@ -113,12 +113,6 @@
     export default {
         data () {
             return {
-                // 后台接口url
-                addUrl: '',
-                delUrl: '',
-                delBatchUrl: '',
-                updateUrl: '',
-                listUrl: $GLOBAL.hostUrl + 'sys/menu/',
 
                 /*用于查找的菜单id*/
                 menuId:null,
@@ -136,7 +130,7 @@
                 loading: true,
                 /*pageInfo实体*/
                 pageInfo:{
-                    page:0,
+                    page:1,
                     pageSize:10
                 },
                 /*menu实体*/
@@ -144,7 +138,7 @@
                     id:null,
                     name:null,
                     url:null,
-                    parentId:null,
+                    pid:null,
                     sort:null,
                     remark:null,
                     icon:null
@@ -154,7 +148,7 @@
                     id:null,
                     name:null,
                     url:null,
-                    parentId:null,
+                    pid:null,
                     sort:null,
                     remark:null,
                     icon:null
@@ -164,7 +158,7 @@
                     id:null,
                     name:null,
                     url:null,
-                    parentId:null,
+                    pid:null,
                     sort:null,
                     remark:null,
                     icon:null
@@ -177,7 +171,7 @@
                     url: [
                         { type:'string',required: true, message: '输入路径', trigger: 'blur' }
                     ],
-                    parentId: [
+                    pid: [
                         { required: true, message: '输入父类ID', trigger: 'blur' },
                         {validator(rule, value, callback) {
                                 if (!Number.isInteger(+value)) {
@@ -211,7 +205,7 @@
                     url: [
                         { type:'string',required: true, message: '输入路径', trigger: 'blur' }
                     ],
-                    parentId: [
+                    pid: [
                         { required: true, message: '输入父类ID', trigger: 'blur' },
                         {validator(rule, value, callback) {
                                 if (!Number.isInteger(+value)) {
@@ -260,7 +254,7 @@
                     },
                     {
                         title: '上级菜单id',
-                        key: 'parentId'
+                        key: 'pid'
                     },
                     {
                         title: '排序',
@@ -279,18 +273,21 @@
             /*页面初始化调用方法*/
             this.getTable({
                 "pageInfo":this.pageInfo,
-                'menuId':this.menuId
+                'menuId':this.menuId,
+                'pid':1
             });
 
             // 初始化搜索框中的下拉菜单
             this.axios({
                 method: 'get',
-                url: $GLOBAL.menu_listByPid_url,
+                url: this.GLOBAL.menu_listByPid_url,
                 params: {
-                    'pid': 0
+                    'pid': 1,
+                    'pageNo':1,
+                    'pageSize':10
                 }
             }).then(function (response) {
-                var listTemp = response.data;
+                var listTemp = response.data.data.list;
                 for (var i = 0; i < listTemp.length; i++) {
                     this.menuList.push({
                         "value": listTemp[i].id,
@@ -304,7 +301,7 @@
         methods:{
             /*pageInfo实体初始化*/
             initPageInfo(){
-                this.pageInfo.page = 0;
+                this.pageInfo.page = 1;
                 this.pageInfo.pageSize = 10;
             },
             /*menu实体初始化*/
@@ -312,7 +309,7 @@
                 this.menu.id = null;
                 this.menu.name = null;
                 this.menu.url = null;
-                this.menu.parentId = null;
+                this.menu.pid = null;
                 this.menu.sort = null;
                 this.menu.remark = null;
                 this.menu.icon = null;
@@ -322,7 +319,7 @@
                 this.menuNew.id = null;
                 this.menuNew.name = null;
                 this.menuNew.url = null;
-                this.menuNew.parentId = null;
+                this.menuNew.pid = null;
                 this.menuNew.sort = null;
                 this.menuNew.remark = null;
                 this.menuNew.icon = null;
@@ -332,7 +329,7 @@
                 this.menuModify.id = null;
                 this.menuModify.name = null;
                 this.menuModify.url = null;
-                this.menuModify.parentId = null;
+                this.menuModify.pid = null;
                 this.menuModify.sort = null;
                 this.menuModify.remark = null;
                 this.menuModify.icon = null;
@@ -342,7 +339,7 @@
                 this.menu.id = e.id;
                 this.menu.name = e.name;
                 this.menu.url = e.url;
-                this.menu.parentId = e.parentId;
+                this.menu.pid = e.pid;
                 this.menu.sort = e.sort;
                 this.menu.remark = e.remark;
                 this.menu.icon = e.icon;
@@ -352,7 +349,7 @@
                 this.menuNew.id = e.id;
                 this.menuNew.name = e.name;
                 this.menuNew.url = e.url;
-                this.menuNew.parentId = e.parentId;
+                this.menuNew.pid = e.pid;
                 this.menuNew.sort = e.sort;
                 this.menuNew.remark = e.remark;
                 this.menuNew.icon = e.icon;
@@ -362,7 +359,7 @@
                 this.menuModify.id = e.id;
                 this.menuModify.name = e.name;
                 this.menuModify.url = e.url;
-                this.menuModify.parentId = e.parentId+'';
+                this.menuModify.pid = e.pid+'';
                 this.menuModify.sort = e.sort+'';
                 this.menuModify.remark = e.remark;
                 this.menuModify.icon = e.icon;
@@ -371,15 +368,15 @@
             getTable(e) {
                 this.axios({
                     method: 'get',
-                    url: $GLOBAL.menu_listByPid_url,
+                    url: this.GLOBAL.menu_listByPid_url,
                     params: {
-                        'page':e.pageInfo.page,
+                        'pageNo':e.pageInfo.page,
                         'pageSize':e.pageInfo.pageSize,
-                        'menuId':e.menuId
+                        'pid':e.pid
                     }
                 }).then(function (response) {
-                    this.data1=response.data.data;
-                    this.total=response.data.totalCount;
+                    this.data1=response.data.data.list;
+                    this.total=response.data.data.total;
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
