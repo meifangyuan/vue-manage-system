@@ -39,14 +39,14 @@
                     </Form-item>
                     </Col>
                     <Col span="12">
-                    <Form-item label="路径:" prop="url">
+                    <Form-item label="菜单地址:" prop="url">
                         <Input v-model="menuNew.url" style="width: 204px"/>
                     </Form-item>
                     </Col>
                 </Row>
                 <Row>
                     <Col span="12">
-                    <Form-item label="父类ID:" prop="pid">
+                    <Form-item label="父菜单ID:" prop="pid">
                         <Input v-model="menuNew.pid" style="width: 204px"/>
                     </Form-item>
                     </Col>
@@ -63,9 +63,6 @@
                     </Form-item>
                     </Col>
                 </Row>
-                <Form-item label="描述:" prop="remark">
-                    <Input v-model="menuNew.remark" type="textarea" :autosize="{minRows: 2,maxRows: 5}"></Input>
-                </Form-item>
             </Form>
         </Modal>
         <!--修改modal-->
@@ -78,14 +75,14 @@
                     </Form-item>
                     </Col>
                     <Col span="12">
-                    <Form-item label="路径:" prop="url">
+                    <Form-item label="菜单地址:" prop="url">
                         <Input v-model="menuModify.url" style="width: 204px"/>
                     </Form-item>
                     </Col>
                 </Row>
                 <Row>
                     <Col span="12">
-                    <Form-item label="父类ID:" prop="pid">
+                    <Form-item label="父菜单ID:" prop="pid">
                         <Input v-model="menuModify.pid" style="width: 204px"/>
                     </Form-item>
                     </Col>
@@ -102,9 +99,6 @@
                     </Form-item>
                     </Col>
                 </Row>
-                <Form-item label="描述:" prop="remark">
-                    <Input v-model="menuModify.remark" type="textarea" :autosize="{minRows: 2,maxRows: 5}"></Input>
-                </Form-item>
             </Form>
         </Modal>
     </div>
@@ -150,7 +144,6 @@
                     url:null,
                     pid:null,
                     sort:null,
-                    remark:null,
                     icon:null
                 },
                 /*用于修改的menu实体*/
@@ -160,7 +153,6 @@
                     url:null,
                     pid:null,
                     sort:null,
-                    remark:null,
                     icon:null
                 },
                 /*新建验证*/
@@ -169,10 +161,10 @@
                         { type:'string',required: true, message: '输入菜单名', trigger: 'blur' }
                     ],
                     url: [
-                        { type:'string',required: true, message: '输入路径', trigger: 'blur' }
+                        { type:'string',required: true, message: '输入菜单地址', trigger: 'blur' }
                     ],
                     pid: [
-                        { required: true, message: '输入父类ID', trigger: 'blur' },
+                        { required: true, message: '输入菜单ID', trigger: 'blur' },
                         {validator(rule, value, callback) {
                                 if (!Number.isInteger(+value)) {
                                     callback(new Error('请输入数字'));
@@ -203,10 +195,10 @@
                         { type:'string',required: true, message: '输入菜单名', trigger: 'blur' }
                     ],
                     url: [
-                        { type:'string',required: true, message: '输入路径', trigger: 'blur' }
+                        { type:'string',required: true, message: '输入菜单地址', trigger: 'blur' }
                     ],
                     pid: [
-                        { required: true, message: '输入父类ID', trigger: 'blur' },
+                        { required: true, message: '输入父菜单ID', trigger: 'blur' },
                         {validator(rule, value, callback) {
                                 if (!Number.isInteger(+value)) {
                                     callback(new Error('请输入数字'));
@@ -273,26 +265,25 @@
             /*页面初始化调用方法*/
             this.getTable({
                 "pageInfo":this.pageInfo,
-                'menuId':this.menuId,
-                'pid':1
+                'menuId':0
             });
 
             // 初始化搜索框中的下拉菜单
             this.axios({
                 method: 'get',
-                url: this.GLOBAL.menu_listByPid_url,
-                params: {
-                    'pid': 1,
-                    'pageNo':1,
-                    'pageSize':10
-                }
+                url: this.GLOBAL.menu_getRootMenus_url
             }).then(function (response) {
-                var listTemp = response.data.data.list;
-                for (var i = 0; i < listTemp.length; i++) {
-                    this.menuList.push({
-                        "value": listTemp[i].id,
-                        "label": listTemp[i].name
-                    });
+                if(response.data.errCode == '0000') {
+                    // 初始化搜索下拉菜单
+                    var listTemp = response.data.data;
+                    for (var i = 0; i < listTemp.length; i++) {
+                        this.menuList.push({
+                            "value": listTemp[i].id,
+                            "label": listTemp[i].name
+                        });
+                    }
+                } else {
+                    this.$Message.info('加载根菜单失败');
                 }
             }.bind(this)).catch(function (error) {
                 alert(error);
@@ -311,7 +302,6 @@
                 this.menu.url = null;
                 this.menu.pid = null;
                 this.menu.sort = null;
-                this.menu.remark = null;
                 this.menu.icon = null;
             },
             /*menuNew实体初始化*/
@@ -321,7 +311,6 @@
                 this.menuNew.url = null;
                 this.menuNew.pid = null;
                 this.menuNew.sort = null;
-                this.menuNew.remark = null;
                 this.menuNew.icon = null;
             },
             /*menuModify实体初始化*/
@@ -331,7 +320,6 @@
                 this.menuModify.url = null;
                 this.menuModify.pid = null;
                 this.menuModify.sort = null;
-                this.menuModify.remark = null;
                 this.menuModify.icon = null;
             },
             /*menuNew设置*/
@@ -341,7 +329,6 @@
                 this.menu.url = e.url;
                 this.menu.pid = e.pid;
                 this.menu.sort = e.sort;
-                this.menu.remark = e.remark;
                 this.menu.icon = e.icon;
             },
             /*menuNew设置*/
@@ -351,7 +338,6 @@
                 this.menuNew.url = e.url;
                 this.menuNew.pid = e.pid;
                 this.menuNew.sort = e.sort;
-                this.menuNew.remark = e.remark;
                 this.menuNew.icon = e.icon;
             },
             /*menuModify设置*/
@@ -361,22 +347,25 @@
                 this.menuModify.url = e.url;
                 this.menuModify.pid = e.pid+'';
                 this.menuModify.sort = e.sort+'';
-                this.menuModify.remark = e.remark;
                 this.menuModify.icon = e.icon;
             },
             /*得到表数据*/
             getTable(e) {
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.menu_listByPid_url,
+                    url: this.GLOBAL.menu_getSubMenusByPage_url,
                     params: {
                         'pageNo':e.pageInfo.page,
                         'pageSize':e.pageInfo.pageSize,
-                        'pid':e.pid
+                        'menuId':e.menuId
                     }
                 }).then(function (response) {
-                    this.data1=response.data.data.list;
-                    this.total=response.data.data.total;
+                    if(response.data.errCode == '0000') {
+                        this.data1=response.data.data.list;
+                        this.total=response.data.data.total;
+                    } else {
+                        this.$Message.info('加载菜单列表失败');
+                    }
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
@@ -413,15 +402,19 @@
                         this.menuSet(this.menuNew);
                         this.axios({
                             method: 'post',
-                            url: '/menus/menu',
+                            url: this.GLOBAL.menu_add_url,
                             data: this.menu
                         }).then(function (response) {
-                            this.initMenuNew();
-                            this.getTable({
-                                "pageInfo":this.pageInfo,
-                                'menuId':this.menuId
-                            });
-                            this.$Message.info('新建成功');
+                            if(response.data.errCode == '0000') {
+                                this.initMenuNew();
+                                this.getTable({
+                                    "pageInfo":this.pageInfo,
+                                    'menuId':this.menuId
+                                });
+                                this.$Message.info('新建菜单成功');
+                            } else {
+                                this.$Message.info('新建菜单失败');
+                            }
                         }.bind(this)).catch(function (error) {
                             alert(error);
                         });
@@ -440,7 +433,7 @@
             openModifyModal(){
                 if(this.count > 1 || this.count < 1){
                     this.modifyModal= false;
-                    this.$Message.warning('请至少选择一项(且只能选择一项)');
+                    this.$Message.warning('请选择一项');
                 }else{
                     this.modifyModal = true;
                 }
@@ -453,15 +446,19 @@
                         this.menuSet(this.menuModify);
                         this.axios({
                             method: 'put',
-                            url: '/menus/'+this.menu.id,
+                            url: this.GLOBAL.menu_update_url,
                             data: this.menu
                         }).then(function (response) {
-                            this.initMenuNew();
-                            this.getTable({
-                                "pageInfo":this.pageInfo,
-                                'menuId':this.menuId
-                            });
-                            this.$Message.info('修改成功');
+                            if(response.data.errCode == '0000') {
+                                this.initMenuNew();
+                                this.getTable({
+                                    "pageInfo":this.pageInfo,
+                                    'menuId':this.menuId
+                                });
+                                this.$Message.info('修改成功');
+                            } else {
+                                this.$Message.info('修改失败');
+                            }
                         }.bind(this)).catch(function (error) {
                             alert(error);
                         });
@@ -499,18 +496,25 @@
             /*删除table中选中的数据*/
             del(){
                 if(this.groupId!=null && this.groupId!=""){
+                    var ids = {"ids": this.groupId.join(',')};
+                    alert(ids);
                     this.axios({
                         method: 'delete',
-                        url: '/menus',
-                        data: this.groupId
+                        url: this.GLOBAL.menu_delByBatch_url,
+                        data: ids
                     }).then(function (response) {
-                        this.getTable({
-                            "pageInfo":this.pageInfo,
-                            'menuId':this.menuId
-                        });
-                        this.groupId=null;
-                        this.count=0;
-                        this.$Message.info('删除成功');
+                        if(response.data.errCode == '0000') {
+                            this.getTable({
+                                "pageInfo":this.pageInfo,
+                                'menuId':this.menuId
+                            });
+                            this.groupId=null;
+                            this.count=0;
+                            this.$Message.info('删除成功');
+                        } else {
+                            this.$Message.info('删除失败');
+                        }
+
                     }.bind(this)).catch(function (error) {
                         alert(error);
                     });
