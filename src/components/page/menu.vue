@@ -496,12 +496,9 @@
             /*删除table中选中的数据*/
             del(){
                 if(this.groupId!=null && this.groupId!=""){
-                    var ids = {"ids": this.groupId.join(',')};
-                    alert(ids);
                     this.axios({
-                        method: 'delete',
-                        url: this.GLOBAL.menu_delByBatch_url,
-                        data: ids
+                        method: 'get',
+                        url: this.GLOBAL.menu_delByBatch_url + "/" + this.groupId.join(',')
                     }).then(function (response) {
                         if(response.data.errCode == '0000') {
                             this.getTable({
