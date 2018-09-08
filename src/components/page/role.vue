@@ -69,7 +69,7 @@
                 loading: true,
                 /*pageInfo实体*/
                 pageInfo:{
-                    page:0,
+                    page:1,
                     pageSize:10
                 },
                 /*role实体*/
@@ -188,11 +188,16 @@
             this.getTable({
                 "pageInfo":this.pageInfo
             });
+            // 加载菜单集合
             this.axios({
                 method: 'get',
-                url: this.GLOBAL.role_getAllRoles_url
+                url: this.GLOBAL.menu_getRootMenus_url
             }).then(function (response) {
-                this.submenusList = response.data;
+                if(response.data.errCode == '0000') {
+                    this.submenusList = response.data.data;
+                } else {
+                    this.$Message.info('加载根菜单失败');
+                }
             }.bind(this)).catch(function (error) {
                 alert(error);
             });
@@ -255,6 +260,7 @@
                         'pageSize':e.pageInfo.pageSize
                     }
                 }).then(function (response) {
+                    alert(JSON.stringify(response));
                     this.data1=response.data.data.list;
                     this.total=response.data.data.total;
                 }.bind(this)).catch(function (error) {
@@ -284,7 +290,7 @@
                         this.roleSet(this.roleNew);
                         this.axios({
                             method: 'post',
-                            url: '/roles/role',
+                            url: this.GLOBAL.role_add_url,
                             data: this.role
                         }).then(function (response) {
                             this.initRoleNew();
@@ -322,8 +328,8 @@
                         this.initRole();
                         this.roleSet(this.roleModify);
                         this.axios({
-                            method: 'put',
-                            url: '/roles/'+this.role.id,
+                            method: 'post',
+                            url: this.GLOBAL.role_update_url,
                             data: this.role
                         }).then(function (response) {
                             this.initRoleModify();
@@ -386,8 +392,8 @@
                 this.initRole();
                 this.roleSet(this.roleModify);
                 this.axios({
-                    method: 'put',
-                    url: '/roles/'+this.role.id,
+                    method: 'post',
+                    url: this.GLOBAL.role_setRoleMenus_url,
                     data: this.role
                 }).then(function (response) {
                     this.initRoleModify();
