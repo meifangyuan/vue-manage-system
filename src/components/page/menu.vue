@@ -109,7 +109,7 @@
             return {
 
                 /*用于查找的菜单id*/
-                menuId:null,
+                menuId:0,   // 默认查询全部菜单
                 /*选择的数量*/
                 count:null,
                 /*选中的组数据*/
@@ -265,7 +265,7 @@
             /*页面初始化调用方法*/
             this.getTable({
                 "pageInfo":this.pageInfo,
-                'menuId':0
+                'menuId': this.menuId
             });
 
             // 初始化搜索框中的下拉菜单
