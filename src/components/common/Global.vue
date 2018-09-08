@@ -10,14 +10,26 @@
     const menu_getSubMenusByPage_url = hostUrl + 'sys/menu/getSubMenusByPage';
     const menu_getMenusByRole_url = hostUrl + 'sys/menu/getMenusByRole';
 
+    // 角色管理接口
+    const role_add_url = hostUrl + 'sys/role/add';
+    const role_delByBatch_url = hostUrl + 'sys/role/delByBatch';
+    const role_update_url = hostUrl + 'sys/role/update';
+    const role_getAllRoles_url = hostUrl + 'sys/role/getAllRoles';
+
     export default
     {
         hostUrl,
+
         menu_add_url,
         menu_delByBatch_url,
         menu_update_url,
         menu_getRootMenus_url,
         menu_getSubMenusByPage_url,
-        menu_getMenusByRole_url
+        menu_getMenusByRole_url,
+
+        role_add_url,
+        role_delByBatch_url,
+        role_update_url,
+        role_getAllRoles_url
     }
 </script>
