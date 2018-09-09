@@ -428,9 +428,8 @@
             del(){
                 if(this.groupId!=null && this.groupId!=""){
                     this.axios({
-                        method: 'delete',
-                        url: '/roles',
-                        data: this.groupId
+                        method: 'get',
+                        url: this.GLOBAL.role_delByBatch_url + "/" + this.groupId.join(',')
                     }).then(function (response) {
                         this.getTable({
                             "pageInfo":this.pageInfo

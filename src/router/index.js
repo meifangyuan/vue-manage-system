@@ -21,7 +21,7 @@ export default new Router({
                 },
                 {
                     path: '/menu',
-                    component: resolve => require(['../components/page/menu.vue'], resolve),
+                    component: resolve => require(['../components/page/menu_new.vue'], resolve),
                     meta: { title: '菜单管理' }
                 },
                 {

@@ -2,8 +2,8 @@
     <div style="margin: 20px;">
         <div>
             <Row style="margin-bottom: 25px;">
-                <Col span="8">登录名：
-                <Input v-model="loginName" placeholder="请输入..." style="width:200px"></Input>
+                <Col span="8">姓名：
+                <Input v-model="searchName" placeholder="请输入..." style="width:200px"></Input>
                 </Col>
                 <Col span="8"><Button type="primary" shape="circle" icon="ios-search" @click="search()">搜索</Button></Col>
             </Row>
@@ -17,7 +17,7 @@
                 </li>
                 <li>
                     <div style="padding: 10px 0;">
-                        <Table border :columns="columns1" :data="data1" :height="400" @on-selection-change="s=>{change(s)}" @on-row-dblclick="s=>{dblclick(s)}"></Table>
+                        <Table border :columns="columns1" :data="userTable" :height="400" @on-selection-change="s=>{change(s)}" @on-row-dblclick="s=>{dblclick(s)}"></Table>
                     </div>
                 </li>
                 <li>
@@ -46,11 +46,6 @@
                     <Col span="12">
                     <Form-item label="密码:" prop="password">
                         <Input v-model="userNew.password" type="password" style="width: 204px"/>
-                    </Form-item>
-                    </Col>
-                    <Col span="12">
-                    <Form-item label="确认密码:" prop="passwordAgain">
-                        <Input v-model="userNew.passwordAgain" type="password" style="width: 204px"/>
                     </Form-item>
                     </Col>
                 </Row>
@@ -97,7 +92,7 @@
         <!--配置角色modal-->
         <Modal v-model="roleModal" width="500" title="角色配置" @on-ok="roleOk()" @on-cancel="cancel()">
             <div>
-                <Table border :columns="columns2" :data="data2" :height="260"  @on-selection-change="s=>{change2(s)}"></Table>
+                <Table border :columns="columns2" :data="roleTable" :height="260"  @on-selection-change="s=>{change2(s)}"></Table>
             </div>
         </Modal>
     </div>
@@ -106,8 +101,8 @@
     export default {
         data () {
             return {
-                /*用于查找的登录名*/
-                loginName:null,
+                /*用于查找的用户姓名*/
+                searchName:null,
                 /*选择的数量*/
                 count:null,
                 /*选中的组数据*/
@@ -124,7 +119,7 @@
                 loading: true,
                 /*pageInfo实体*/
                 pageInfo:{
-                    page:0,
+                    page:1,
                     pageSize:10
                 },
                 /*user实体*/
@@ -133,7 +128,6 @@
                     name:null,
                     loginName:null,
                     password:null,
-                    passwordAgain:null,
                     email:null
                 },
                 /*用于添加的user实体*/
@@ -142,7 +136,6 @@
                     name:null,
                     loginName:null,
                     password:null,
-                    passwordAgain:null,
                     email:null
                 },
                 /*用于修改的user实体*/
@@ -163,9 +156,6 @@
                     ],
                     password: [
                         { type:'string',required: true, message: '输入密码', trigger: 'blur' }
-                    ],
-                    passwordAgain: [
-                        { type:'string',required: true, message: '输入再次密码', trigger: 'blur' }
                     ],
                     email: [
                         { required: true, message: '输入邮箱', trigger: 'blur' },
@@ -228,7 +218,7 @@
                     },
                 ],
                 /*表数据*/
-                data1: [],
+                userTable: [],
                 /*表显示字段*/
                 columns2: [
                     {
@@ -243,11 +233,11 @@
                     },
                     {
                         title: '描述',
-                        key: 'describe'
+                        key: 'desc'
                     }
                 ],
                 /*表数据*/
-                data2:[],
+                roleTable:[],
                 /*data2的临时存储*/
                 data2Temp:[],
                 /*用户与角色关系列表*/
@@ -258,13 +248,17 @@
             /*页面初始化调用方法*/
             this.getTable({
                 "pageInfo":this.pageInfo,
-                "loginName":this.loginName
+                "name":this.searchName
             });
             this.axios({
                 method: 'get',
-                url: '/roles/all'
+                url: this.GLOBAL.role_getAllRoles_url
             }).then(function (response) {
-                this.data2Temp = response.data;
+                if(response.data.errCode == '0000') {
+                    this.data2Temp = response.data;
+                } else {
+                    this.$Message.info('加载角色列表失败');
+                }
             }.bind(this)).catch(function (error) {
                 alert(error);
             });
@@ -272,7 +266,7 @@
         methods:{
             /*pageInfo实体初始化*/
             initPageInfo(){
-                this.pageInfo.page = 0;
+                this.pageInfo.page = 1;
                 this.pageInfo.pageSize = 10;
             },
             /*user实体初始化*/
@@ -329,15 +323,19 @@
             getTable(e) {
                 this.axios({
                     method: 'get',
-                    url: '/users',
+                    url: this.GLOBAL.user_getUsersByPage_url,
                     params: {
                         'page':e.pageInfo.page,
                         'pageSize':e.pageInfo.pageSize,
-                        'loginName':e.loginName
+                        'name':e.name
                     }
                 }).then(function (response) {
-                    this.data1=response.data.data;
-                    this.total=response.data.totalCount;
+                    if(response.data.errCode == '0000') {
+                        this.userTable=response.data.data;
+                        this.total=response.data.total;
+                    } else {
+                        this.$Message.info('加载用户列表失败');
+                    }
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
@@ -347,22 +345,22 @@
                 this.initPageInfo();
                 this.getTable({
                     "pageInfo":this.pageInfo,
-                    "loginName":this.loginName
+                    "name":this.name
                 });
             },
             /*分页点击事件*/
             pageSearch(e){
-                this.pageInfo.page = e-1;
+                this.pageInfo.page = e;
                 this.getTable({
                     "pageInfo":this.pageInfo,
-                    "loginName":this.loginName
+                    "name":this.name
                 });
             },
             /*新建点击触发事件*/
             openNewModal(){
                 this.newModal = true;
                 this.initUserNew();
-                this.data1.sort();
+                this.userTable.sort();
                 this.count = 0;
                 this.groupId = null;
             },
@@ -370,31 +368,27 @@
             newOk (userNew) {
                 this.$refs[userNew].validate((valid) => {
                     if (valid) {
-                        if(this.userNew.password == this.userNew.passwordAgain){
-                            this.initUser();
-                            this.userSet(this.userNew);
-                            this.axios({
-                                method: 'post',
-                                url: '/users/user',
-                                data: this.user
-                            }).then(function (response) {
+                        this.initUser();
+                        this.userSet(this.userNew);
+                        this.axios({
+                            method: 'post',
+                            url: this.GLOBAL.user_add_url,
+                            data: this.user
+                        }).then(function (response) {
+                            if(response.data.errCode == '0000') {
                                 this.initUserNew();
                                 this.getTable({
                                     "pageInfo":this.pageInfo,
                                     "loginName":this.loginName
                                 });
                                 this.$Message.info('新建成功');
-                            }.bind(this)).catch(function (error) {
-                                alert(error);
-                            });
-                            this.newModal = false;
-                        }else{
-                            this.$Message.error('两次输入的密码不相同！');
-                            this.loading = false;
-                            this.$nextTick(() => {
-                                this.loading = true;
-                            });
-                        }
+                            } else {
+                                this.$Message.info('新建失败');
+                            }
+                        }.bind(this)).catch(function (error) {
+                            alert(error);
+                        });
+                        this.newModal = false;
                     }else {
                         this.$Message.error('表单验证失败!');
                         setTimeout(() => {
@@ -422,16 +416,20 @@
                         this.initUser();
                         this.userSet(this.userModify);
                         this.axios({
-                            method: 'put',
-                            url: '/users/'+this.user.id,
+                            method: 'post',
+                            url: this.GLOBAL.user_update_url,
                             data: this.user
                         }).then(function (response) {
-                            this.initUserNew();
-                            this.getTable({
-                                "pageInfo":this.pageInfo,
-                                "loginName":this.loginName
-                            });
-                            this.$Message.info('修改成功');
+                            if(response.data.errCode == '0000') {
+                                this.initUserNew();
+                                this.getTable({
+                                    "pageInfo":this.pageInfo,
+                                    "loginName":this.loginName
+                                });
+                                this.$Message.info('修改成功');
+                            } else {
+                                this.$Message.info('修改失败');
+                            }
                         }.bind(this)).catch(function (error) {
                             alert(error);
                         });
@@ -470,17 +468,21 @@
             del(){
                 if(this.groupId!=null && this.groupId!=""){
                     this.axios({
-                        method: 'delete',
-                        url: '/users',
-                        data: this.groupId
+                        method: 'get',
+                        url: this.GLOBAL.user_delByBatch_url + "/" + this.groupId.join(',')
                     }).then(function (response) {
-                        this.getTable({
-                            "pageInfo":this.pageInfo,
-                            "loginName":this.loginName
-                        });
-                        this.groupId=null;
-                        this.count=0;
-                        this.$Message.info('删除成功');
+                        if(response.data.errCode == '0000') {
+                            this.getTable({
+                                "pageInfo":this.pageInfo,
+                                "name":this.name
+                            });
+                            this.groupId=null;
+                            this.count=0;
+                            this.$Message.info('删除成功');
+                        } else {
+                            this.$Message.info('删除失败');
+                        }
+
                     }.bind(this)).catch(function (error) {
                         alert(error);
                     });
@@ -490,12 +492,12 @@
             dblclick(e){
                 this.userModifySet(e);
                 this.modifyModal = true;
-                this.data1.sort();
+                this.userTable.sort();
             },
             /*流程配置*/
             relationSet(e){
                 this.roleModal = true;
-                this.data2 = [];
+                this.roleTable = [];
                 this.axios({
                     method: 'get',
                     url: '/relations/'+e.id
@@ -506,7 +508,7 @@
                     }
                     for(var i in this.data2Temp){
                         if(roleList.indexOf(this.data2Temp[i].id) == -1){
-                            this.data2.push({
+                            this.roleTable.push({
                                 "id": this.data2Temp[i].id,
                                 "name": this.data2Temp[i].name,
                                 "describe": this.data2Temp[i].describe,
@@ -514,7 +516,7 @@
                                 "_checked": false
                             });
                         }else {
-                            this.data2.push({
+                            this.roleTable.push({
                                 "id": this.data2Temp[i].id,
                                 "name": this.data2Temp[i].name,
                                 "describe": this.data2Temp[i].describe,
@@ -547,7 +549,7 @@
                 this.relationList = [];
                 if(e.length == 0){
                     this.relationList.push({
-                        "userId": this.data2[0].userId
+                        "userId": this.roleTable[0].userId
                     });
                 }
                 for (var i in e) {

@@ -507,7 +507,7 @@
                             });
                             this.groupId=null;
                             this.count=0;
-                            this.$Message.info('删除成功');
+                            this.$message.info('删除成功');
                         } else {
                             this.$Message.info('删除失败');
                         }
