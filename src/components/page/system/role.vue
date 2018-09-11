@@ -2,7 +2,7 @@
     <div class="table">
         <div class="crumbs">
             <el-breadcrumb separator="/">
-                <el-breadcrumb-item><i class="el-icon-tickets"></i>菜单管理</el-breadcrumb-item>
+                <el-breadcrumb-item><i class="el-icon-tickets"></i>角色管理</el-breadcrumb-item>
             </el-breadcrumb>
         </div>
         <div class="container">
@@ -14,19 +14,14 @@
 
             <el-table :data="tableData" border style="width: 100%" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55"></el-table-column>
-                <el-table-column prop="name" label="菜单名称"  width="150">
+                <el-table-column prop="name" label="角色名称"  width="150">
                 </el-table-column>
-                <el-table-column prop="url" label="菜单地址" width="120">
-                </el-table-column>
-                <el-table-column prop="pid" label="父菜单ID" width="120">
-                </el-table-column>
-                <el-table-column prop="icon" label="图标" width="120">
-                </el-table-column>
-                <el-table-column prop="sort" label="排序" sortable width="120">
+                <el-table-column prop="url" label="角色描述" width="120">
                 </el-table-column>
                 <el-table-column label="操作" width="180">
                     <template slot-scope="scope">
                         <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                        <el-button size="small" @click="handleConfig(scope.$index, scope.row)">配置</el-button>
                         <el-button size="small" type="danger" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     </template>
                 </el-table-column>
@@ -41,24 +36,15 @@
         <!-- 新增弹出框 -->
         <el-dialog title="新增" :visible.sync="addVisible" width="30%">
             <el-form ref="form" :model="addFrom" label-width="50px">
-                <el-form-item label="菜单名称">
+                <el-form-item label="角色名称">
                     <el-input v-model="addFrom.name"></el-input>
                 </el-form-item>
-                <el-form-item label="菜单地址">
-                    <el-input v-model="addFrom.url"></el-input>
-                </el-form-item>
-                <el-form-item label="父菜单ID">
-                <el-input v-model="addFrom.pid"></el-input>
-                </el-form-item>
-                <el-form-item label="图标">
-                    <el-input v-model="addFrom.icon"></el-input>
-                </el-form-item>
-                <el-form-item label="排序">
-                    <el-input v-model="addFrom.sort"></el-input>
+                <el-form-item label="角色描述">
+                    <el-input v-model="addFrom.desc"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="editVisible = false">取 消</el-button>
+                <el-button @click="addVisible = false">取 消</el-button>
                 <el-button type="primary" @click="addOk">确 定</el-button>
             </span>
         </el-dialog>
@@ -66,20 +52,11 @@
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="editForm" label-width="50px">
-                <el-form-item label="菜单名称">
+                <el-form-item label="角色名称">
                     <el-input v-model="editForm.name"></el-input>
                 </el-form-item>
-                <el-form-item label="菜单地址">
-                    <el-input v-model="editForm.url"></el-input>
-                </el-form-item>
-                <el-form-item label="父菜单ID">
-                    <el-input v-model="editForm.pid"></el-input>
-                </el-form-item>
-                <el-form-item label="图标">
-                    <el-input v-model="editForm.icon"></el-input>
-                </el-form-item>
-                <el-form-item label="排序">
-                    <el-input v-model="editForm.sort"></el-input>
+                <el-form-item label="角色描述">
+                    <el-input v-model="editForm.desc"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -94,6 +71,34 @@
             <span slot="footer" class="dialog-footer">
                 <el-button @click="delVisible = false">取 消</el-button>
                 <el-button type="primary" @click="delOk">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- 角色菜单权限配置弹出框 -->
+        <el-dialog title="角色菜单权限配置" :visible.sync="configVisible" width="30%">
+            <el-form :model="configForm">
+                <el-form-item>
+                    <el-table :data="configData" border height="300">
+                        <el-table-column property="name" label="菜单名称" ></el-table-column>
+                        <el-table-column property="menuState" label="默认关闭">
+                            <template scope="scope1">
+                                <el-switch
+                                    on-text ="是"
+                                    off-text = "否"
+                                    on-color="#5B7BFA"
+                                    off-color="#dadde5"
+                                    v-model="scope1.row.menuState"
+                                    @change=change(scope1.$index,scope1.row)
+                                >
+                                </el-switch>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="configVisible = false">取 消</el-button>
+                <el-button type="primary" @click="configOk">确 定</el-button>
             </span>
         </el-dialog>
     </div>
@@ -128,24 +133,32 @@
                 addVisible: false,
                 editVisible: false,
                 delVisible: false,
+                configVisible: false,
 
                 /*新增表单实体*/
                 addForm:{
                     name:null,
-                    url:null,
-                    pid:null,
-                    sort:null,
-                    icon:null
+                    desc:null
                 },
                 /*修改表单实体*/
                 editForm:{
                     id:null,
                     name:null,
-                    url:null,
-                    pid:null,
-                    sort:null,
-                    icon:null
-                }
+                    desc:null
+                },
+                /*角色菜单配置实体*/
+                configForm:{
+
+                },
+                configData:[
+                    {
+                        name:"系统管理",
+                        menuState:false,
+                    },
+                    {
+                        name:"菜单管理",
+                        menuState:false,
+                    }]
             }
         },
         // 页面加载后初始化
@@ -173,7 +186,7 @@
                         this.data1=response.data.data.list;
                         this.total=response.data.data.total;
                     } else {
-                        this.$Message.info('加载菜单列表失败');
+                        this.$message.info('加载菜单列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -250,6 +263,13 @@
                 }
                 this.editVisible = true;
             },
+            /*点击配置*/
+            handleConfig(index, row) {
+                this.currentIndex = index;
+                const item = this.tableData[index];
+
+                this.configVisible = true;
+            },
             /*点击删除*/
             handleDel(index, row) {
                 this.currentIndex = index;
@@ -276,9 +296,9 @@
                             "pageInfo":this.pageInfo,
                             'menuId':this.menuId
                         });
-                        this.$Message.info('新建菜单成功');
+                        this.$message.info('新建菜单成功');
                     } else {
-                        this.$Message.info('新建菜单失败');
+                        this.$message.info('新建菜单失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -294,9 +314,9 @@
                     if(response.data.errCode == '0000') {
                         this.$set(this.tableData, this.currentIndex, this.editForm);
                         this.editVisible = false;
-                        this.$Message.info('修改成功');
+                        this.$message.info('修改成功');
                     } else {
-                        this.$Message.info('修改失败');
+                        this.$message.info('修改失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -318,9 +338,15 @@
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
+            },
+            /*配置角色菜单*/
+            change:function(index,row){
+                console.log(index,row);
+            },
+            /*完成配置*/
+            configOk() {
+
             }
-
-
         }
     }
 
