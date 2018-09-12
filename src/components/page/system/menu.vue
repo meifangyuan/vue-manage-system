@@ -47,8 +47,11 @@
                 <el-form-item label="菜单地址">
                     <el-input v-model="addFrom.url"></el-input>
                 </el-form-item>
-                <el-form-item label="父菜单ID">
-                <el-input v-model="addFrom.pid"></el-input>
+                <el-form-item label="父菜单">
+                    <el-select v-model="addForm.pid" clearable placeholder="请选择">
+                        <el-option v-for="item in rootMenus" :label="item.name" :value="item.id">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="图标">
                     <el-input v-model="addFrom.icon"></el-input>
@@ -145,7 +148,12 @@
                     pid:null,
                     sort:null,
                     icon:null
-                }
+                },
+                /*根菜单集合*/
+                rootMenus:[{
+                    "id":1,
+                    "name":"系统管理"
+                }]
             }
         },
         // 页面加载后初始化
