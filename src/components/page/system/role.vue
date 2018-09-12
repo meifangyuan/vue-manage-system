@@ -7,6 +7,7 @@
         </div>
         <div class="container">
             <div class="handle-box">
+                <el-button type="primary" icon="add" class="handle-add mr10" @click="handleAdd()">新增</el-button>
                 <el-button type="primary" icon="delete" class="handle-del mr10" @click="batchDel">批量删除</el-button>
                 <el-input v-model="key_word" placeholder="筛选关键词" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="search" @click="search">搜索</el-button>
@@ -16,9 +17,9 @@
                 <el-table-column type="selection" width="55"></el-table-column>
                 <el-table-column prop="name" label="角色名称"  width="150">
                 </el-table-column>
-                <el-table-column prop="url" label="角色描述" width="120">
+                <el-table-column prop="description" label="角色描述" width="120">
                 </el-table-column>
-                <el-table-column label="操作" width="180">
+                <el-table-column label="操作" width="280">
                     <template slot-scope="scope">
                         <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                         <el-button size="small" @click="handleConfig(scope.$index, scope.row)">配置</el-button>
@@ -35,12 +36,12 @@
 
         <!-- 新增弹出框 -->
         <el-dialog title="新增" :visible.sync="addVisible" width="30%">
-            <el-form ref="form" :model="addFrom" label-width="50px">
+            <el-form ref="form" :model="addForm" label-width="50px">
                 <el-form-item label="角色名称">
-                    <el-input v-model="addFrom.name"></el-input>
+                    <el-input v-model="addForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="角色描述">
-                    <el-input v-model="addFrom.desc"></el-input>
+                    <el-input v-model="addForm.description"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -56,7 +57,7 @@
                     <el-input v-model="editForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="角色描述">
-                    <el-input v-model="editForm.desc"></el-input>
+                    <el-input v-model="editForm.description"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -138,13 +139,13 @@
                 /*新增表单实体*/
                 addForm:{
                     name:null,
-                    desc:null
+                    description:null
                 },
                 /*修改表单实体*/
                 editForm:{
                     id:null,
                     name:null,
-                    desc:null
+                    description:null
                 },
                 /*角色菜单配置实体*/
                 configForm:{
@@ -175,7 +176,7 @@
             getTable(e) {
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.menu_getMenusByPage_url,
+                    url: this.GLOBAL.role_getRolesByPage_url,
                     params: {
                         'pageNo':e.pageInfo.page,
                         'pageSize':e.pageInfo.pageSize,
@@ -186,7 +187,7 @@
                         this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
                     } else {
-                        this.$message.info('加载菜单列表失败');
+                        this.$message.info('加载角色列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -217,7 +218,7 @@
                 if(ids != null && ids.length > 0){
                     this.axios({
                         method: 'get',
-                        url: this.GLOBAL.menu_delByBatch_url + "/" + ids.join(',')
+                        url: this.GLOBAL.role_delByBatch_url + "/" + ids.join(',')
                     }).then(function (response) {
                         if(response.data.errCode == '0000') {
                             this.getTable({
@@ -242,10 +243,7 @@
             handleAdd() {
                 this.addForm = {
                     name: null,
-                    url: null,
-                    pid: null,
-                    sort: null,
-                    icon: null
+                    desc: null
                 }
                 this.addVisible = true;
             },
@@ -256,10 +254,7 @@
                 this.editForm = {
                     id: item.id,
                     name: item.name,
-                    url: item.url,
-                    pid: item.pid,
-                    sort: item.sort,
-                    icon: item.icon
+                    desc: item.desc
                 }
                 this.editVisible = true;
             },
@@ -287,18 +282,18 @@
             addOk() {
                 this.axios({
                     method: 'post',
-                    url: this.GLOBAL.menu_add_url,
+                    url: this.GLOBAL.role_add_url,
                     data: this.addForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
                         this.addVisible = false;
                         this.getTable({
                             "pageInfo":this.pageInfo,
-                            'menuId':this.menuId
+                            'name':this.key_word
                         });
-                        this.$message.info('新建菜单成功');
+                        this.$message.info('创建成功');
                     } else {
-                        this.$message.info('新建菜单失败');
+                        this.$message.info('创建失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -308,7 +303,7 @@
             editOk() {
                 this.axios({
                     method: 'post',
-                    url: this.GLOBAL.menu_update_url,
+                    url: this.GLOBAL.role_update_url,
                     data: this.editForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
@@ -326,11 +321,11 @@
             delOk() {
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.menu_delByBatch_url + "/" + this.tableData[this.currentIndex].id
+                    url: this.GLOBAL.role_del_url + "/" + this.tableData[this.currentIndex].id
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
                         this.$set(this.tableData, this.currentIndex, this.editForm);
-                        this.editVisible = false;
+                        this.delVisible = false;
                         this.$message.info('删除成功');
                     } else {
                         this.$message.info('删除失败');
