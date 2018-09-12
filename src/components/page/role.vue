@@ -1,256 +1,453 @@
 <template>
-    <div class="table">
-        <div class="crumbs">
-            <el-breadcrumb separator="/">
-                <el-breadcrumb-item><i class="el-icon-tickets"></i>角色管理</el-breadcrumb-item>
-            </el-breadcrumb>
+    <div style="margin: 20px;">
+        <div>
+            <ul>
+                <li>
+                    <Button type="primary" icon="plus-round" @click="openNewModal()">新建</Button>
+                    <Button type="success" icon="wrench" @click="openModifyModal()">修改</Button>
+                    <Button type="error" icon="trash-a" @click="del()">删除</Button>
+                </li>
+                <li>
+                    <div style="padding: 10px 0;">
+                        <Table border :columns="columns1" :data="data1" :height="400" @on-selection-change="s=>{change(s)}" @on-row-dblclick="s=>{dblclick(s)}"></Table>
+                    </div>
+                </li>
+                <li>
+                    <div style="text-align: right;">
+                        <Page :total="total" :page-size="pageInfo.pageSize" show-elevator show-total @on-change="e=>{pageSearch(e)}"></Page>
+                    </div>
+                </li>
+            </ul>
         </div>
-
-        <div class="container">
-            <div class="handle-box">
-                <el-button type="primary" icon="delete" class="handle-del mr10" @click="delBatch">批量删除</el-button>
-                <el-button type="primary" icon="add" class="handle-del mr10" @click="toAdd">新增</el-button>
-            </div>
-
-            <el-table :data="data" border style="width: 100%" ref="multipleTable" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55"></el-table-column>
-                <el-table-column prop="name" label="名称" width="120">
-                </el-table-column>
-                <el-table-column prop="url" label="url" >
-                </el-table-column>
-                <el-table-column prop="pid" label="父菜单" >
-                </el-table-column>
-                <el-table-column prop="order" label="序号" >
-                </el-table-column>
-                <el-table-column label="操作" width="180">
-                    <template slot-scope="scope">
-                        <el-button size="small" @click="toEdit(scope.$index, scope.row)">编辑</el-button>
-                        <el-button size="small" type="danger" @click="toDel(scope.$index, scope.row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <div class="pagination">
-                <el-pagination @current-change="handleCurrentChange" layout="prev, pager, next" :total="1000">
-                </el-pagination>
-            </div>
-        </div>
-
-        <!-- 编辑弹出框 -->
-        <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="80px">
-                <el-form-item label="角色名称">
-                    <el-input v-model="form.name"></el-input>
-                </el-form-item>
-                <el-form-item label="url">
-                    <el-input v-model="form.url"></el-input>
-                </el-form-item>
-                <el-form-item label="父菜单">
-                    <el-input v-model="form.pid"></el-input>
-                </el-form-item>
-                <el-form-item label="序号">
-                    <el-input v-model="form.order"></el-input>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="editVisible = false">取 消</el-button>
-                <el-button type="primary" @click="edit">确 定</el-button>
-            </span>
-        </el-dialog>
-
-        <!-- 新增弹出框 -->
-        <el-dialog title="新增菜单" :visible.sync="addVisible" width="30%">
-            <el-form ref="form" :model="form" label-width="80px">
-                <el-form-item label="菜单名称">
-                    <el-input v-model="form.name"></el-input>
-                </el-form-item>
-                <el-form-item label="url">
-                    <el-input v-model="form.url"></el-input>
-                </el-form-item>
-                <el-form-item label="父菜单">
-                    <el-input v-model="form.pid"></el-input>
-                </el-form-item>
-                <el-form-item label="序号">
-                    <el-input v-model="form.order"></el-input>
-                </el-form-item>
-            </el-form>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="addVisible = false">取 消</el-button>
-                <el-button type="primary" @click="add">确 定</el-button>
-            </span>
-        </el-dialog>
-
-        <!-- 删除提示框 -->
-        <el-dialog title="提示" :visible.sync="delVisible" width="300px" center>
-            <div class="del-dialog-cnt">删除不可恢复，是否确定删除？</div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="delVisible = false">取 消</el-button>
-                <el-button type="primary" @click="del">确 定</el-button>
-            </span>
-        </el-dialog>
+        <!--添加modal-->
+        <Modal :mask-closable="false" :visible.sync="newModal" :loading = "loading" v-model="newModal" width="600" title="新建" @on-ok="newOk('roleNew')" @on-cancel="cancel()">
+            <Form ref="roleNew" :model="roleNew" :rules="ruleNew" :label-width="80" >
+                <Form-item label="角色名:" prop="name">
+                    <Input v-model="roleNew.name" style="width: 204px"/>
+                </Form-item>
+                <Form-item label="描述:" prop="describe">
+                    <Input v-model="roleNew.describe" type="textarea" :autosize="{minRows: 2,maxRows: 5}"></Input>
+                </Form-item>
+            </Form>
+        </Modal>
+        <!--修改modal-->
+        <Modal :mask-closable="false" :visible.sync="modifyModal" :loading = "loading" v-model="modifyModal" width="600" title="修改" @on-ok="modifyOk('roleModify')" @on-cancel="cancel()">
+            <Form ref="roleModify" :model="roleModify" :rules="ruleModify" :label-width="80" >
+                <Form-item label="角色名:" prop="name">
+                    <Input v-model="roleModify.name" style="width: 204px"/>
+                </Form-item>
+                <Form-item label="描述:" prop="describe">
+                    <Input v-model="roleModify.describe" type="textarea" :autosize="{minRows: 2,maxRows: 5}"></Input>
+                </Form-item>
+            </Form>
+        </Modal>
+        <!-- 配置权限 -->
+        <Modal v-model="settingModal"  width="400" title="配置权限" @on-ok="settingOk()" @on-cancel="cancel()" :mask-closable="false">
+            <Row>
+                <Col span="24"><Table border :columns="columns2" :data="data2"></Table></Col>
+            </Row>
+        </Modal>
     </div>
 </template>
-
 <script>
     export default {
-        name: 'menu',
-        data() {
-            // 使用return使为局部变量，非全局可见
+        data () {
             return {
-                // 后台接口url
-                addUrl: '',
-                delUrl: '',
-                delBatchUrl: '',
-                updateUrl: '',
-                listUrl: './static/menu.json',
-
-                // 可视标识变量
-                editVisible: false,
-                delVisible: false,
-                addVisible : false,
-
-                tableData: [],  // 表格数据
-                cur_page: 1,    // 当前页
-                idx: -1,        // 选中的行
-                multipleSelection: [],  // 多选记录
-                del_list: [],   // 要删除的ids
-
-                // 表单对象
-                form: {
-                    id: '',
-                    name: '',
-                    url: '',
-                    order: '',
-                    pid: ''
-                }
+                /*选择的数量*/
+                count:null,
+                /*选中的组数据*/
+                groupId:null,
+                /*新建modal的显示参数*/
+                newModal:false,
+                /*修改modal的显示参数*/
+                modifyModal:false,
+                /*权限modal的显示参数*/
+                settingModal:false,
+                /*分页total属性绑定值*/
+                total:0,
+                /*loading*/
+                loading: true,
+                /*pageInfo实体*/
+                pageInfo:{
+                    page:1,
+                    pageSize:10
+                },
+                /*role实体*/
+                role:{
+                    id:null,
+                    name:null,
+                    modules:null,
+                    describe:null
+                },
+                /*用于添加的role实体*/
+                roleNew:{
+                    id:null,
+                    name:null,
+                    modules:null,
+                    describe:null
+                },
+                /*用于修改的role实体*/
+                roleModify:{
+                    id:null,
+                    name:null,
+                    modules:null,
+                    describe:null
+                },
+                /*新建验证*/
+                ruleNew:{
+                    name: [
+                        { type:'string',required: true, message: '输入角色名', trigger: 'blur' }
+                    ]
+                },
+                /*修改验证*/
+                ruleModify:{
+                    name: [
+                        { type:'string',required: true, message: '输入角色名', trigger: 'blur' }
+                    ]
+                },
+                /*表显示字段*/
+                columns1: [
+                    {
+                        type: 'selection',
+                        width: 60,
+                        align: 'center'
+                    },
+                    {
+                        title: '角色名',
+                        key: 'name'
+                    },
+                    {
+                        title: '描述',
+                        key: 'desc'
+                    },
+                    {   title: '操作',
+                        key: 'action',
+                        width: 180,
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div', [ h('Button',
+                                {
+                                    props: { icon:'gear-b' },
+                                    style: {border:'none',background:'none' },
+                                    on: {
+                                        click: () => {
+                                            this.setting(params.row);
+                                        }
+                                    }
+                                }, )
+                            ]);
+                        }
+                    }
+                ],
+                /*表数据*/
+                data1: [],
+                /*表显示字段*/
+                columns2: [
+                    {
+                        title: '权限',
+                        key: 'name'
+                    },
+                    {
+                        title: '操作',
+                        align: 'center',
+                        render: (h, params) => {
+                            return h('div',[
+                                h('i-switch',{
+                                    attrs:{
+                                        'value' : params.row.value
+                                    },
+                                    on:{
+                                        'on-change':(val)=>{
+                                            var i = this.moduleArr.indexOf(params.row.id+'');
+                                            if(val){
+                                                if(i == -1){
+                                                    this.moduleArr.push(params.row.id+'');
+                                                }
+                                            }else{
+                                                if(i != -1){
+                                                    this.moduleArr.splice(i,1);
+                                                }
+                                            }
+                                        }
+                                    }
+                                })
+                            ]);
+                        }
+                    }
+                ],
+                /*表数据*/
+                data2: [],
+                /*临时存储权限的数组*/
+                moduleArr:[],
+                /*二级菜单列表*/
+                submenusList:[]
             }
         },
-        // 创建vue实例时触发
-        created() {
-            alert("created()");
-            this.getData();
-        },
-        // 加载完成即触发，执行赋值等操作
-        computed: {
-            data() {
-                alert("computed()");
-                return this.tableData;
-            }
-        },
-        // 方法，条件触发，如点击事件
-        methods: {
-            // 分页导航
-            handleCurrentChange(val) {
-                this.cur_page = val;
-                this.getData();
-            },
-            handleSelectionChange(val) {
-                this.multipleSelection = val;
-            },
-            toAdd() {
-                this.addVisible = true;
-            },
-            toDel(index, row) {
-                this.delVisible = true;
-                this.idx = index;
-                this.row = row;
-            },
-            toEdit(index, row) {
-                this.idx = index;
-                const item = this.tableData[index];
-                this.form = {
-                    id: item.id,
-                    name: item.name,
-                    url: item.url,
-                    pid: item.pid,
-                    order: item.order
+        mounted(){
+            /*页面初始化调用方法*/
+            this.getTable({
+                "pageInfo":this.pageInfo
+            });
+            // 加载菜单集合
+            this.axios({
+                method: 'get',
+                url: this.GLOBAL.menu_getRootMenus_url
+            }).then(function (response) {
+                if(response.data.errCode == '0000') {
+                    this.submenusList = response.data.data;
+                } else {
+                    this.$Message.info('加载根菜单失败');
                 }
-                this.editVisible = true;
+            }.bind(this)).catch(function (error) {
+                alert(error);
+            });
+        },
+        methods:{
+            /*pageInfo实体初始化*/
+            initPageInfo(){
+                this.pageInfo.page = 1;
+                this.pageInfo.pageSize = 10;
             },
-            // 新增
-            add() {
-                this.$axios.post(this.addUrl, this.form).then((res) => {
-                    alert(res);
-                    this.$message.success(`新增菜单成功`);
-                    this.addVisible = false;
-                }).catch(function (err) {
-                    console.log(err);
-                    this.$message.success(`新增菜单失败`);
+            /*role实体初始化*/
+            initRole(){
+                this.role.id = null;
+                this.role.name = null;
+                this.role.modules = null;
+                this.role.desc = null;
+            },
+            /*roleNew实体初始化*/
+            initRoleNew(){
+                this.roleNew.id = null;
+                this.roleNew.name = null;
+                this.roleNew.modules = null;
+                this.roleNew.desc = null;
+            },
+            /*roleModify实体初始化*/
+            initRoleModify(){
+                this.roleModify.id = null;
+                this.roleModify.name = null;
+                this.roleModify.modules = null;
+                this.roleModify.desc = null;
+            },
+            /*roleNew设置*/
+            roleSet(e){
+                this.role.id = e.id;
+                this.role.name = e.name;
+                this.role.modules = e.modules;
+                this.role.desc = e.desc;
+            },
+            /*roleNew设置*/
+            roleNewSet(e){
+                this.roleNew.id = e.id;
+                this.roleNew.name = e.name;
+                this.roleNew.modules = e.modules;
+                this.roleNew.desc = e.desc;
+            },
+            /*roleModify设置*/
+            roleModifySet(e){
+                this.roleModify.id = e.id;
+                this.roleModify.name = e.name;
+                this.roleModify.modules = e.modules;
+                this.roleModify.desc = e.desc;
+            },
+            /*得到表数据*/
+            getTable(e) {
+                this.axios({
+                    method: 'get',
+                    url: this.GLOBAL.role_getAllRoles_url,
+                    params: {
+                        'page':e.pageInfo.page,
+                        'pageSize':e.pageInfo.pageSize
+                    }
+                }).then(function (response) {
+                    alert(JSON.stringify(response));
+                    this.data1=response.data.data.list;
+                    this.total=response.data.data.total;
+                }.bind(this)).catch(function (error) {
+                    alert(error);
                 });
             },
-            // 删除单条记录
+            /*分页点击事件*/
+            pageSearch(e){
+                this.pageInfo.page = e-1;
+                this.getTable({
+                    "pageInfo":this.pageInfo
+                });
+            },
+            /*新建点击触发事件*/
+            openNewModal(){
+                this.newModal = true;
+                this.initRoleNew();
+                this.data1.sort();
+                this.count = 0;
+                this.groupId = null;
+            },
+            /*新建modal的newOk点击事件*/
+            newOk (roleNew) {
+                this.$refs[roleNew].validate((valid) => {
+                    if (valid) {
+                        this.initRole();
+                        this.roleSet(this.roleNew);
+                        this.axios({
+                            method: 'post',
+                            url: this.GLOBAL.role_add_url,
+                            data: this.role
+                        }).then(function (response) {
+                            this.initRoleNew();
+                            this.getTable({
+                                "pageInfo":this.pageInfo
+                            });
+                            this.$Message.info('新建成功');
+                        }.bind(this)).catch(function (error) {
+                            alert(error);
+                        });
+                        this.newModal = false;
+                    }else {
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.$nextTick(() => {
+                                this.loading = true;
+                            });
+                        }, 1000);
+                    }
+                })
+            },
+            /*点击修改时判断是否只选择一个*/
+            openModifyModal(){
+                if(this.count > 1 || this.count < 1){
+                    this.modifyModal= false;
+                    this.$Message.warning('请至少选择一项(且只能选择一项)');
+                }else{
+                    this.modifyModal = true;
+                }
+            },
+            /*修改modal的modifyOk点击事件*/
+            modifyOk (roleModify) {
+                this.$refs[roleModify].validate((valid) => {
+                    if (valid) {
+                        this.initRole();
+                        this.roleSet(this.roleModify);
+                        this.axios({
+                            method: 'post',
+                            url: this.GLOBAL.role_update_url,
+                            data: this.role
+                        }).then(function (response) {
+                            this.initRoleModify();
+                            this.getTable({
+                                "pageInfo":this.pageInfo
+                            });
+                            this.$Message.info('修改成功');
+                        }.bind(this)).catch(function (error) {
+                            alert(error);
+                        });
+                        this.modifyModal = false;
+                    }else {
+                        this.$Message.error('表单验证失败!');
+                        setTimeout(() => {
+                            this.loading = false;
+                            this.$nextTick(() => {
+                                this.loading = true;
+                            });
+                        }, 1000);
+                    }
+                })
+            },
+            /*表格中按钮点击事件*/
+            setting(e){
+                this.data1.sort();
+                this.settingModal = true;
+                this.roleModifySet(e);
+                if(e.modules == null || e.modules == ''){
+                    this.moduleArr = [];
+                }else{
+                    this.moduleArr = e.modules.split(";");
+                }
+                var data2Temp = [];
+                for (var i = 0; i < this.submenusList.length; i++) {
+                    if(this.moduleArr.indexOf(this.submenusList[i].id+'') == -1){
+                        data2Temp.push({
+                            'id': this.submenusList[i].id,
+                            'name': this.submenusList[i].name,
+                            'value': false
+                        });
+                    }else{
+                        data2Temp.push({
+                            'id': this.submenusList[i].id,
+                            'name': this.submenusList[i].name,
+                            'value': true
+                        });
+                    }
+                }
+                this.data2 = data2Temp;
+            },
+            /*配置权限的settingOk点击事件*/
+            settingOk(){
+                var temp = "";
+                for(var i in this.moduleArr){
+                    if(this.moduleArr[i] != '' && this.moduleArr != null){
+                        temp = temp + this.moduleArr[i]+";";
+                    }
+                }
+                this.roleModify.modules = temp;
+                this.initRole();
+                this.roleSet(this.roleModify);
+                this.axios({
+                    method: 'post',
+                    url: this.GLOBAL.role_setRoleMenus_url,
+                    data: this.role
+                }).then(function (response) {
+                    this.initRoleModify();
+                    this.getTable({
+                        "pageInfo":this.pageInfo
+                    });
+                    this.$Message.info('配置成功');
+                }.bind(this)).catch(function (error) {
+                    alert(error);
+                });
+            },
+            /*modal的cancel点击事件*/
+            cancel () {
+                this.$Message.info('点击了取消');
+            },
+            /*table选择后触发事件*/
+            change(e){
+                if(e.length==1){
+                    this.roleModifySet(e['0']);
+                }
+                this.setGroupId(e);
+            },
+            /*通过选中的行设置groupId的值*/
+            setGroupId(e){
+                this.groupId=[];
+                this.count=e.length;
+                for (var i = 0; i <= e.length - 1; i++) {
+                    this.groupId.push(e[i].id);
+                }
+            },
+            /*删除table中选中的数据*/
             del(){
-                this.$axios.post(this.delUrl, {
-                    id: this.tableData[this.idx].id
-                }).then(function (res) {
-                    alert(res);
-                    this.tableData.splice(this.idx, 1);
-                    this.$message.success('删除成功');
-                    this.delVisible = false;
-                }).catch(function (err) {
-                    console.log(err);
-                });
-            },
-            // 批量删除
-            delBatch() {
-                const length = this.multipleSelection.length;
-                let ids = '';
-                this.del_list = this.del_list.concat(this.multipleSelection);
-                for (let i = 0; i < length; i++) {
-                    ids += this.multipleSelection[i].name + ',';
+                if(this.groupId!=null && this.groupId!=""){
+                    this.axios({
+                        method: 'get',
+                        url: this.GLOBAL.role_delByBatch_url + "/" + this.groupId.join(',')
+                    }).then(function (response) {
+                        this.getTable({
+                            "pageInfo":this.pageInfo
+                        });
+                        this.groupId=null;
+                        this.count=0;
+                        this.$Message.info('删除成功');
+                    }.bind(this)).catch(function (error) {
+                        alert(error);
+                    });
                 }
-                this.$message.error('删除了' + ids);
-                this.multipleSelection = [];
-
-                this.$axios.post(this.delUrl, {
-                    ids: ids
-                }).then(function (res) {
-                    alert(res);
-                }).catch(function (err) {
-                    console.log(err);
-                });
             },
-            // 修改
-            edit() {
-                this.$axios.post(this.updateUrl, this.form).then((res) => {
-                    alert(res);
-                    this.$set(this.tableData, this.idx, this.form);
-                    this.editVisible = false;
-                    this.$message.success(`修改第 ${this.idx+1} 行成功`);
-                }).catch(function (err) {
-                    console.log(err);
-                    this.$message.success(`修改菜单失败`);
-                });
-            },
-            getData() {
-                this.$axios.get(this.listUrl, {
-                    page: this.cur_page
-                }).then((res) => {
-                    this.tableData = res.data.list;
-                }).catch(function (err) {
-                    console.log(err);
-                });
+            /*表格中双击事件*/
+            dblclick(e){
+                this.roleModifySet(e);
+                this.modifyModal = true;
+                this.data1.sort();
             }
-
         }
     }
-
 </script>
-
-<style scoped>
-    .handle-box {
-        margin-bottom: 20px;
-    }
-
-    .handle-select {
-        width: 120px;
-    }
-
-    .handle-input {
-        width: 300px;
-        display: inline-block;
-    }
-    .del-dialog-cnt{
-        font-size: 16px;
-        text-align: center
-    }
-</style>

@@ -21,12 +21,12 @@ export default new Router({
                 },
                 {
                     path: '/menu',
-                    component: resolve => require(['../components/page/menu.vue'], resolve),
+                    component: resolve => require(['../components/page/system/menu.vue'], resolve),
                     meta: { title: '菜单管理' }
                 },
                 {
                     path: '/role',
-                    component: resolve => require(['../components/page/role.vue'], resolve),
+                    component: resolve => require(['../components/page/system/role.vue'], resolve),
                     meta: { title: '角色管理' }
                 },
                 {
