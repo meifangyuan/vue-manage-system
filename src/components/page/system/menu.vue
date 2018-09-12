@@ -7,6 +7,7 @@
         </div>
         <div class="container">
             <div class="handle-box">
+                <el-button type="primary" icon="add" class="handle-add mr10" @click="handleAdd()">新增</el-button>
                 <el-button type="primary" icon="delete" class="handle-del mr10" @click="batchDel">批量删除</el-button>
                 <el-input v-model="key_word" placeholder="筛选关键词" class="handle-input mr10"></el-input>
                 <el-button type="primary" icon="search" @click="search">搜索</el-button>
@@ -40,24 +41,24 @@
 
         <!-- 新增弹出框 -->
         <el-dialog title="新增" :visible.sync="addVisible" width="30%">
-            <el-form ref="form" :model="addFrom" label-width="50px">
+            <el-form ref="form" :model="addForm" label-width="50px">
                 <el-form-item label="菜单名称">
-                    <el-input v-model="addFrom.name"></el-input>
+                    <el-input v-model="addForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="菜单地址">
-                    <el-input v-model="addFrom.url"></el-input>
+                    <el-input v-model="addForm.url"></el-input>
                 </el-form-item>
                 <el-form-item label="父菜单">
                     <el-select v-model="addForm.pid" clearable placeholder="请选择">
-                        <el-option v-for="item in rootMenus" :label="item.name" :value="item.id">
+                        <el-option v-for="item in rootMenus" :label="item.name" :value="item.id" :key="item.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="图标">
-                    <el-input v-model="addFrom.icon"></el-input>
+                    <el-input v-model="addForm.icon"></el-input>
                 </el-form-item>
                 <el-form-item label="排序">
-                    <el-input v-model="addFrom.sort"></el-input>
+                    <el-input v-model="addForm.sort"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -75,8 +76,11 @@
                 <el-form-item label="菜单地址">
                     <el-input v-model="editForm.url"></el-input>
                 </el-form-item>
-                <el-form-item label="父菜单ID">
-                    <el-input v-model="editForm.pid"></el-input>
+                <el-form-item label="父菜单">
+                    <el-select v-model="editForm.pid" clearable placeholder="请选择">
+                        <el-option v-for="item in rootMenus" :label="item.name" :value="item.id" :key="item.id">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="图标">
                     <el-input v-model="editForm.icon"></el-input>
@@ -136,7 +140,7 @@
                 addForm:{
                     name:null,
                     url:null,
-                    pid:null,
+                    pid:0,
                     sort:null,
                     icon:null
                 },
@@ -150,10 +154,7 @@
                     icon:null
                 },
                 /*根菜单集合*/
-                rootMenus:[{
-                    "id":1,
-                    "name":"系统管理"
-                }]
+                rootMenus:[]
             }
         },
         // 页面加载后初始化
@@ -163,6 +164,8 @@
                 "pageInfo":this.pageInfo,
                 "key_word":null
             });
+            // 加载rootMenus
+            this.loadRootMenus();
         },
         // 声明的方法
         methods:{
@@ -178,7 +181,7 @@
                     }
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.data1=response.data.data.list;
+                        this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
                     } else {
                         this.$message.info('加载菜单列表失败');
@@ -318,10 +321,25 @@
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
                         this.$set(this.tableData, this.currentIndex, this.editForm);
-                        this.editVisible = false;
+                        this.delVisible = false;
                         this.$message.info('删除成功');
                     } else {
                         this.$message.info('删除失败');
+                    }
+                }.bind(this)).catch(function (error) {
+                    alert(error);
+                });
+            },
+            // 加载根菜单集合
+            loadRootMenus() {
+                this.axios({
+                    method: 'get',
+                    url: this.GLOBAL.menu_getRootMenus_url
+                }).then(function (response) {
+                    if(response.data.errCode == '0000') {
+                        this.rootMenus=response.data.data;
+                    } else {
+                        this.$message.info('加载菜单列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);

@@ -81,14 +81,14 @@
                     <el-table :data="configData" border height="300">
                         <el-table-column property="name" label="菜单名称" ></el-table-column>
                         <el-table-column property="menuState" label="默认关闭">
-                            <template scope="scope1">
+                            <template slot-scope="scope">
                                 <el-switch
                                     on-text ="是"
                                     off-text = "否"
                                     on-color="#5B7BFA"
                                     off-color="#dadde5"
-                                    v-model="scope1.row.menuState"
-                                    @change=change(scope1.$index,scope1.row)
+                                    v-model="scope.row.menuState"
+                                    @change=change(scope.$index,scope.row)
                                 >
                                 </el-switch>
                             </template>
@@ -183,7 +183,7 @@
                     }
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.data1=response.data.data.list;
+                        this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
                     } else {
                         this.$message.info('加载菜单列表失败');
