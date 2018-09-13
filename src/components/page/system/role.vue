@@ -80,7 +80,7 @@
             <el-form :model="configForm">
                 <el-form-item>
                     <el-table :data="configData" border height="300">
-                        <el-table-column property="name" label="菜单名称" ></el-table-column>
+                        <el-table-column property="menuName" label="菜单名称" ></el-table-column>
                         <el-table-column property="menuState" label="默认关闭">
                             <template slot-scope="scope">
                                 <el-switch
@@ -151,15 +151,10 @@
                 configForm:{
 
                 },
-                configData:[
-                    {
-                        name:"系统管理",
-                        menuState:false,
-                    },
-                    {
-                        name:"菜单管理",
-                        menuState:false,
-                    }]
+                /*角色菜单配置*/
+                configData:[],
+                /*角色对应的菜单集合*/
+                roleMenuIds:[]
             }
         },
         // 页面加载后初始化
@@ -262,7 +257,8 @@
             handleConfig(index, row) {
                 this.currentIndex = index;
                 const item = this.tableData[index];
-
+                // 加载角色对应的菜单
+                this.loadConfigedMenus(item.id);
                 this.configVisible = true;
             },
             /*点击删除*/
@@ -313,6 +309,7 @@
                     } else {
                         this.$message.info('修改失败');
                     }
+
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
@@ -337,10 +334,52 @@
             /*配置角色菜单*/
             change:function(index,row){
                 console.log(index,row);
+                if(row.menuState == true) {
+                    this.roleMenuIds.push(row.menuId);
+                } else {
+                    this.roleMenuIds.splice(row.menuId);
+                }
             },
             /*完成配置*/
             configOk() {
+                alert(JSON.stringify(this.roleMenuIds));
+                this.configVisible = false;
 
+                //
+                this.axios({
+                    method: 'post',
+                    url: this.GLOBAL.role_setRoleMenus_url,
+                    param: {
+                        "roleId": this.tableData[this.currentIndex].id,
+                        "menuIds": this.roleMenuIds
+                    }
+                }).then(function (response) {
+                    if(response.data.errCode == '0000') {
+                        this.$message.info('配置角色菜单权限成功');
+                    } else {
+                        this.$message.info('配置角色菜单权限失败');
+                    }
+                }.bind(this)).catch(function (error) {
+                    alert(error);
+                });
+
+                this.roleMenuIds = [];
+            },
+            /*加载二级菜单集合*/
+            loadConfigedMenus(roleId) {
+                this.axios({
+                    method: 'get',
+                    url: this.GLOBAL.menu_getMenusByRole_url + "/" + roleId
+                }).then(function (response) {
+                    if(response.data.errCode == '0000') {
+                        alert(JSON.stringify(response));
+                        this.configData = response.data.data;
+                    } else {
+                        this.$message.info('加载角色列表失败');
+                    }
+                }.bind(this)).catch(function (error) {
+                    alert(error);
+                });
             }
         }
     }

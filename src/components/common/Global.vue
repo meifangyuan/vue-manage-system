@@ -8,7 +8,7 @@
     const menu_delByBatch_url = hostUrl + 'sys/menu/delByBatch';
     const menu_update_url = hostUrl + 'sys/menu/update';
     const menu_getRootMenus_url = hostUrl + 'sys/menu/getRootMenus';
-    const menu_getSecondMenus_url = hostUrl + 'sys/menu/getSecondMenus';
+    const menu_getMenusByRole_url = hostUrl + 'sys/menu/getMenusByRole';
     const menu_getMenusByPage_url = hostUrl + 'sys/menu/getMenusByPage';
 
     // 角色管理接口
@@ -36,7 +36,7 @@
         menu_delByBatch_url,
         menu_update_url,
         menu_getRootMenus_url,
-        menu_getSecondMenus_url,
+        menu_getMenusByRole_url,
         menu_getMenusByPage_url,
 
         role_add_url,
