@@ -181,11 +181,9 @@
                         'name':e.key_word
                     }
                 }).then(function (response) {
-                    // alert(JSON.stringify(response));
                     if(response.data.errCode == '0000') {
                         this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
-                        // alert(this.total);
                     } else {
                         this.$message.info('加载用户列表失败');
                     }
@@ -273,7 +271,6 @@
                     method: 'get',
                     url: this.GLOBAL.user_getUserRole_url + "/" + item.id
                 }).then(function (response) {
-                    // alert(JSON.stringify(response));
                     if(response.data.errCode == '0000') {
                         this.configForm.roleId = response.data.data.id;
                     } else {

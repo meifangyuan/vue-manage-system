@@ -112,12 +112,8 @@
             return {
                 /*搜索关键词*/
                 key_word:null,
-                /*选择的数量*/
-                selectedCount:null,
                 /*选中记录数组*/
                 selectedRows:[],
-                /*加载中*/
-                loading: true,
                 /*表格数据*/
                 tableData:[],
                 /*分页total属性*/
@@ -239,7 +235,7 @@
             handleAdd() {
                 this.addForm = {
                     name: null,
-                    desc: null
+                    description: null
                 }
                 this.addVisible = true;
             },
@@ -286,7 +282,7 @@
                         this.addVisible = false;
                         this.getTable({
                             "pageInfo":this.pageInfo,
-                            'name':this.key_word
+                            'key_word':this.key_word
                         });
                         this.$message.info('创建成功');
                     } else {
@@ -374,7 +370,6 @@
                     url: this.GLOBAL.menu_getMenusByRole_url + "/" + roleId
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        alert(JSON.stringify(response));
                         this.configData = response.data.data;
                     } else {
                         this.$message.info('加载角色列表失败');
