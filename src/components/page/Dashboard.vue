@@ -102,7 +102,7 @@
         name: 'dashboard',
         data() {
             return {
-                name: localStorage.getItem('ms_username'),
+                name: localStorage.getItem('loginName'),
                 todoList: [
                     {
                         title: '今天要修复100个bug',

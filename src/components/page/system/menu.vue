@@ -158,7 +158,7 @@
             // 加载表格数据
             this.loadTable({
                 "pageInfo":this.pageInfo,
-                "key_word":null
+                "key_word":this.key_word
             });
             // 加载rootMenus
             this.loadRootMenus();
@@ -170,7 +170,7 @@
                 this.axios({
                     method: 'get',
                     url: this.GLOBAL.menu_getMenusByPage_url,
-                    data: {
+                    params: {   // 注意此处是用的是params
                         'pageNo':e.pageInfo.pageNo,
                         'pageSize':e.pageInfo.pageSize,
                         'name':e.key_word

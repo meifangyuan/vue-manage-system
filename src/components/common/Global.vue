@@ -30,6 +30,11 @@
     const user_getUsersByPage_url = hostUrl + 'sys/user/getUsersByPage';
     const user_getUserRole_url = hostUrl + 'sys/user/getUserRole';
 
+    // 登录|登出|修改密码
+    const login_login_url = hostUrl + 'sys/login/login';
+    const login_logout_url = hostUrl + 'sys/login/logout';
+    const login_changePwd_url = hostUrl + 'sys/login/changePwd';
+
     export default
     {
         hostUrl,
@@ -56,6 +61,10 @@
         user_update_url,
         user_setUserRole_url,
         user_getUsersByPage_url,
-        user_getUserRole_url
+        user_getUserRole_url,
+
+        login_login_url,
+        login_logout_url,
+        login_changePwd_url
     }
 </script>

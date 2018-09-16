@@ -36,7 +36,7 @@
                         <a href="https://github.com/lin-xin/vue-manage-system" target="_blank">
                             <el-dropdown-item>项目仓库</el-dropdown-item>
                         </a>
-                        <el-dropdown-item divided  command="loginout">退出登录</el-dropdown-item>
+                        <el-dropdown-item divided  command="logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -56,16 +56,31 @@
         },
         computed:{
             username(){
-                let username = localStorage.getItem('ms_username');
-                return username ? username : this.name;
+                var loginUser = JSON.parse(localStorage.getItem('loginUser'));
+                var userName = loginUser.name;
+                return userName ? userName : this.name;
             }
         },
         methods:{
             // 用户名下拉菜单选择事件
             handleCommand(command) {
-                if(command == 'loginout'){
-                    localStorage.removeItem('ms_username')
-                    this.$router.push('/login');
+                if(command == 'logout'){
+                    // 后台请求登出
+                    this.axios({
+                        method: 'post',
+                        url: this.GLOBAL.login_logout_url
+                    }).then(function (response) {
+                        if(response.data.errCode == '0000') {
+                            // 删除本地存储的登录用户信息
+                            localStorage.removeItem('loginUser');
+                            // 跳转到登录页
+                            this.$router.push('/login');
+                        } else {
+                            this.$message.info('登出失败');
+                        }
+                    }.bind(this)).catch(function (error) {
+                        alert(error);
+                    });
                 }
             },
             // 侧边栏折叠
