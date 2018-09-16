@@ -18,6 +18,8 @@
     const role_update_url = hostUrl + 'sys/role/update';
     const role_setRoleMenus_url = hostUrl + 'sys/role/setRoleMenus';
     const role_getRolesByPage_url = hostUrl + 'sys/role/getRolesByPage';
+    const role_getAllRoles_url = hostUrl + 'sys/role/getAllRoles';
+
 
     // 用户管理接口
     const user_add_url = hostUrl + 'sys/user/add';
@@ -26,6 +28,7 @@
     const user_update_url = hostUrl + 'sys/user/update';
     const user_setUserRole_url = hostUrl + 'sys/user/setUserRole';
     const user_getUsersByPage_url = hostUrl + 'sys/user/getUsersByPage';
+    const user_getUserRole_url = hostUrl + 'sys/user/getUserRole';
 
     export default
     {
@@ -45,12 +48,14 @@
         role_update_url,
         role_setRoleMenus_url,
         role_getRolesByPage_url,
+        role_getAllRoles_url,
 
         user_add_url,
         user_del_url,
         user_delByBatch_url,
         user_update_url,
         user_setUserRole_url,
-        user_getUsersByPage_url
+        user_getUsersByPage_url,
+        user_getUserRole_url
     }
 </script>

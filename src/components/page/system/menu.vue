@@ -34,7 +34,7 @@
             </el-table>
 
             <div class="pagination">
-                <el-pagination @current-change="handlePageChange" layout="prev, pager, next" :total="total">
+                <el-pagination @current-change="handlePageChange" layout="prev, pager, next, total" :total="total">
                 </el-pagination>
             </div>
         </div>
@@ -113,12 +113,12 @@
             return {
                 /*搜索关键词*/
                 key_word:null,
-                /*选择的数量*/
-                selectedCount:null,
-                /*选中记录数组*/
+                /*选中行数*/
+                selectedCount:0,
+                /*选中记录集合*/
                 selectedRows:[],
                 /*加载中*/
-                loading: true,
+                loading:true,
                 /*表格数据*/
                 tableData:[],
                 /*分页total属性*/
@@ -160,7 +160,7 @@
         // 页面加载后初始化
         mounted() {
             // 加载表格数据
-            this.getTable({
+            this.loadTable({
                 "pageInfo":this.pageInfo,
                 "key_word":null
             });
@@ -169,13 +169,13 @@
         },
         // 声明的方法
         methods:{
-            /*得到表数据*/
-            getTable(e) {
+            /*加载表数据*/
+            loadTable(e) {
                 this.axios({
                     method: 'get',
                     url: this.GLOBAL.menu_getMenusByPage_url,
-                    params: {
-                        'pageNo':e.pageInfo.page,
+                    data: {
+                        'pageNo':e.pageInfo.pageNo,
                         'pageSize':e.pageInfo.pageSize,
                         'name':e.key_word
                     }
@@ -184,7 +184,7 @@
                         this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
                     } else {
-                        this.$message.info('加载菜单列表失败');
+                        this.$message.info('加载数据列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -198,7 +198,7 @@
             /*搜索按钮点击事件*/
             search() {
                 this.initPageInfo();
-                this.getTable({
+                this.loadTable({
                     "pageInfo":this.pageInfo,
                     'key_word':this.key_word
                 });
@@ -210,7 +210,6 @@
                 for (let i = 0; i < length; i++) {
                     ids.push(this.selectedRows[i].id);
                 }
-                //this.$message.error('删除了' + ids.join(','));
 
                 if(ids != null && ids.length > 0){
                     this.axios({
@@ -218,10 +217,13 @@
                         url: this.GLOBAL.menu_delByBatch_url + "/" + ids.join(',')
                     }).then(function (response) {
                         if(response.data.errCode == '0000') {
-                            this.getTable({
+                            alert(JSON.stringify(response));
+                            // 重新加载表数据
+                            this.loadTable({
                                 "pageInfo":this.pageInfo,
                                 'key_word':this.key_word
                             });
+                            // 重置选中记录集合
                             this.selectedRows = [];
                             this.$message.info('删除成功');
                         } else {
@@ -268,8 +270,8 @@
             },
             /*分页导航*/
             handlePageChange(val) {
-                this.pageInfo.pageNo = val-1;
-                this.getTable({
+                this.pageInfo.pageNo = val;
+                this.loadTable({
                     "pageInfo":this.pageInfo,
                     'key_word':this.key_word
                 });
@@ -283,13 +285,13 @@
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
                         this.addVisible = false;
-                        this.getTable({
+                        this.loadTable({
                             "pageInfo":this.pageInfo,
-                            'menuId':this.menuId
+                            'key_word':this.key_word
                         });
-                        this.$Message.info('新建菜单成功');
+                        this.$message.info('新增成功');
                     } else {
-                        this.$Message.info('新建菜单失败');
+                        this.$message.info('新增失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -303,11 +305,12 @@
                     data: this.editForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
+                        // 直接更新当前行记录
                         this.$set(this.tableData, this.currentIndex, this.editForm);
                         this.editVisible = false;
-                        this.$Message.info('修改成功');
+                        this.$message.info('修改成功');
                     } else {
-                        this.$Message.info('修改失败');
+                        this.$message.info('修改失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -320,7 +323,7 @@
                     url: this.GLOBAL.menu_delByBatch_url + "/" + this.tableData[this.currentIndex].id
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.$set(this.tableData, this.currentIndex, this.editForm);
+                        this.tableData.splice(this.currentIndex, 1);
                         this.delVisible = false;
                         this.$message.info('删除成功');
                     } else {
@@ -339,7 +342,7 @@
                     if(response.data.errCode == '0000') {
                         this.rootMenus=response.data.data;
                     } else {
-                        this.$message.info('加载菜单列表失败');
+                        this.$message.info('加载根菜单列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);

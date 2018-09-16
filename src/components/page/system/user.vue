@@ -2,7 +2,7 @@
     <div class="table">
         <div class="crumbs">
             <el-breadcrumb separator="/">
-                <el-breadcrumb-item><i class="el-icon-tickets"></i>角色管理</el-breadcrumb-item>
+                <el-breadcrumb-item><i class="el-icon-tickets"></i>用户管理</el-breadcrumb-item>
             </el-breadcrumb>
         </div>
         <div class="container">
@@ -15,11 +15,13 @@
 
             <el-table :data="tableData" border style="width: 100%" ref="multipleTable" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55"></el-table-column>
-                <el-table-column prop="name" label="角色名称"  width="150">
+                <el-table-column prop="name" label="姓名" width="180">
                 </el-table-column>
-                <el-table-column prop="description" label="角色描述" width="120">
+                <el-table-column prop="loginName" label="登录名"  width="180">
                 </el-table-column>
-                <el-table-column label="操作" width="280">
+                <el-table-column prop="email" label="邮箱" width="180">
+                </el-table-column>
+                <el-table-column label="操作" width="240">
                     <template slot-scope="scope">
                         <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                         <el-button size="small" @click="handleConfig(scope.$index, scope.row)">配置</el-button>
@@ -37,11 +39,17 @@
         <!-- 新增弹出框 -->
         <el-dialog title="新增" :visible.sync="addVisible" width="30%">
             <el-form ref="form" :model="addForm" label-width="50px">
-                <el-form-item label="角色名称">
+                <el-form-item label="姓名">
                     <el-input v-model="addForm.name"></el-input>
                 </el-form-item>
-                <el-form-item label="角色描述">
-                    <el-input v-model="addForm.description"></el-input>
+                <el-form-item label="登录名">
+                    <el-input v-model="addForm.loginName"></el-input>
+                </el-form-item>
+                <el-form-item label="密码">
+                    <el-input v-model="addForm.password"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱">
+                    <el-input v-model="addForm.email"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -53,11 +61,17 @@
         <!-- 编辑弹出框 -->
         <el-dialog title="编辑" :visible.sync="editVisible" width="30%">
             <el-form ref="form" :model="editForm" label-width="50px">
-                <el-form-item label="角色名称">
+                <el-form-item label="姓名">
                     <el-input v-model="editForm.name"></el-input>
                 </el-form-item>
-                <el-form-item label="角色描述">
-                    <el-input v-model="editForm.description"></el-input>
+                <el-form-item label="登录名">
+                    <el-input v-model="editForm.loginName"></el-input>
+                </el-form-item>
+                <el-form-item label="密码">
+                    <el-input v-model="editForm.password"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱">
+                    <el-input v-model="editForm.email"></el-input>
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
@@ -75,33 +89,20 @@
             </span>
         </el-dialog>
 
-        <!-- 角色菜单权限配置弹出框 -->
-        <el-dialog title="角色菜单权限配置" :visible.sync="configVisible" width="30%">
+        <!-- 用户角色配置弹出框 -->
+        <el-dialog title="用户角色配置" :visible.sync="configVisible" width="30%">
             <el-form :model="configForm">
-                <el-form-item>
-                    <el-table :data="configData" border height="300">
-                        <el-table-column property="menuName" label="菜单名称" ></el-table-column>
-                        <el-table-column property="menuState" label="默认关闭">
-                            <template slot-scope="scope">
-                                <el-switch
-                                    on-text ="是"
-                                    off-text = "否"
-                                    on-color="#5B7BFA"
-                                    off-color="#dadde5"
-                                    v-model="scope.row.menuState"
-                                    @change=change(scope.$index,scope.row)
-                                >
-                                </el-switch>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-form-item>
+                <el-select v-model="configForm.roleId" clearable placeholder="请选择">
+                    <el-option v-for="item in roles" :label="item.name" :value="item.id" :key="item.id">
+                    </el-option>
+                </el-select>
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="configVisible = false">取 消</el-button>
                 <el-button type="primary" @click="configOk">确 定</el-button>
             </span>
         </el-dialog>
+
     </div>
 </template>
 
@@ -112,12 +113,8 @@
             return {
                 /*搜索关键词*/
                 key_word:null,
-                /*选择的数量*/
-                selectedCount:null,
                 /*选中记录数组*/
                 selectedRows:[],
-                /*加载中*/
-                loading: true,
                 /*表格数据*/
                 tableData:[],
                 /*分页total属性*/
@@ -130,32 +127,34 @@
                 /*当前行index*/
                 currentIndex:null,
 
-                // 增删改窗口可视标志
+                /*可视标志*/
                 addVisible: false,
                 editVisible: false,
                 delVisible: false,
-                configVisible: false,
+                configVisible:false,
 
                 /*新增表单实体*/
                 addForm:{
                     name:null,
-                    description:null
+                    loginName:null,
+                    password:null,
+                    email:null
                 },
                 /*修改表单实体*/
                 editForm:{
                     id:null,
                     name:null,
-                    description:null
+                    loginName:null,
+                    password:null,
+                    email:null
                 },
-                /*角色菜单配置实体*/
+                /*用户角色配置实体*/
                 configForm:{
                     userId:null,
                     roleId:null
                 },
-                /*角色菜单配置*/
-                configData:[],
-                /*角色对应的菜单集合*/
-                roleMenuIds:[]
+                /*角色集合*/
+                roles:[]
             }
         },
         // 页面加载后初始化
@@ -165,25 +164,30 @@
                 "pageInfo":this.pageInfo,
                 "key_word":null
             });
+            // 加载角色集合
+            this.loadRoles();
         },
         // 声明的方法
         methods:{
             /*得到表数据*/
             getTable(e) {
+                // alert(e.pageInfo.pageNo);
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.role_getRolesByPage_url,
+                    url: this.GLOBAL.user_getUsersByPage_url,
                     params: {
-                        'pageNo':e.pageInfo.page,
+                        'pageNo':e.pageInfo.pageNo,
                         'pageSize':e.pageInfo.pageSize,
                         'name':e.key_word
                     }
                 }).then(function (response) {
+                    // alert(JSON.stringify(response));
                     if(response.data.errCode == '0000') {
                         this.tableData=response.data.data.list;
                         this.total=response.data.data.total;
+                        // alert(this.total);
                     } else {
-                        this.$message.info('加载角色列表失败');
+                        this.$message.info('加载用户列表失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -209,12 +213,11 @@
                 for (let i = 0; i < length; i++) {
                     ids.push(this.selectedRows[i].id);
                 }
-                //this.$message.error('删除了' + ids.join(','));
 
                 if(ids != null && ids.length > 0){
                     this.axios({
                         method: 'get',
-                        url: this.GLOBAL.role_delByBatch_url + "/" + ids.join(',')
+                        url: this.GLOBAL.user_delByBatch_url + "/" + ids.join(',')
                     }).then(function (response) {
                         if(response.data.errCode == '0000') {
                             this.getTable({
@@ -239,7 +242,9 @@
             handleAdd() {
                 this.addForm = {
                     name: null,
-                    desc: null
+                    loginName: null,
+                    password: null,
+                    email: null
                 }
                 this.addVisible = true;
             },
@@ -250,7 +255,9 @@
                 this.editForm = {
                     id: item.id,
                     name: item.name,
-                    desc: item.desc
+                    loginName: item.loginName,
+                    password: item.password,
+                    email: item.email
                 }
                 this.editVisible = true;
             },
@@ -258,9 +265,24 @@
             handleConfig(index, row) {
                 this.currentIndex = index;
                 const item = this.tableData[index];
-                // 加载角色对应的菜单
-                this.loadConfigedMenus(item.id);
+                this.configForm.userId = item.id;
                 this.configVisible = true;
+
+                // 加载用户角色信息
+                this.axios({
+                    method: 'get',
+                    url: this.GLOBAL.user_getUserRole_url + "/" + item.id
+                }).then(function (response) {
+                    // alert(JSON.stringify(response));
+                    if(response.data.errCode == '0000') {
+                        this.configForm.roleId = response.data.data.id;
+                    } else {
+                        this.$message.info('获取用户角色失败');
+                    }
+                }.bind(this)).catch(function (error) {
+                    alert(error);
+                });
+
             },
             /*点击删除*/
             handleDel(index, row) {
@@ -269,7 +291,7 @@
             },
             /*分页导航*/
             handlePageChange(val) {
-                this.pageInfo.pageNo = val-1;
+                this.pageInfo.pageNo = val;
                 this.getTable({
                     "pageInfo":this.pageInfo,
                     'key_word':this.key_word
@@ -279,18 +301,18 @@
             addOk() {
                 this.axios({
                     method: 'post',
-                    url: this.GLOBAL.role_add_url,
+                    url: this.GLOBAL.user_add_url,
                     data: this.addForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
                         this.addVisible = false;
                         this.getTable({
                             "pageInfo":this.pageInfo,
-                            'name':this.key_word
+                            'key_word':this.key_word
                         });
-                        this.$message.info('创建成功');
+                        this.$message.info('新建成功');
                     } else {
-                        this.$message.info('创建失败');
+                        this.$message.info('新建失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
@@ -300,7 +322,7 @@
             editOk() {
                 this.axios({
                     method: 'post',
-                    url: this.GLOBAL.role_update_url,
+                    url: this.GLOBAL.user_update_url,
                     data: this.editForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
@@ -310,7 +332,6 @@
                     } else {
                         this.$message.info('修改失败');
                     }
-
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
@@ -319,10 +340,10 @@
             delOk() {
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.role_del_url + "/" + this.tableData[this.currentIndex].id
+                    url: this.GLOBAL.user_del_url + "/" + this.tableData[this.currentIndex].id
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.$set(this.tableData, this.currentIndex, this.editForm);
+                        this.tableData.splice(this.currentIndex, 1);
                         this.delVisible = false;
                         this.$message.info('删除成功');
                     } else {
@@ -332,52 +353,42 @@
                     alert(error);
                 });
             },
-            /*配置角色菜单*/
-            change:function(index,row){
-                console.log(index,row);
-                if(row.menuState == true) {
-                    this.roleMenuIds.push(row.menuId);
-                } else {
-                    this.roleMenuIds.splice(row.menuId);
-                }
-            },
             /*完成配置*/
             configOk() {
-                alert(JSON.stringify(this.roleMenuIds));
-                alert(this.tableData[this.currentIndex].id);
                 this.configVisible = false;
 
-                // 配置角色菜单权限
+                // 配置用户角色
                 this.axios({
                     method: 'post',
-                    url: this.GLOBAL.role_setRoleMenus_url,
-                    data: {
-                        "roleId": this.tableData[this.currentIndex].id,
-                        "menuIds": this.roleMenuIds
-                    }
+                    url: this.GLOBAL.user_setUserRole_url,
+                    data: this.configForm
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.$message.info('配置角色菜单权限成功');
+                        this.$message.info('配置成功');
                     } else {
-                        this.$message.info('配置角色菜单权限失败');
+                        this.$message.info('配置失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);
                 });
 
-                this.roleMenuIds = [];
+                // 重置配置Form
+                this.configForm = {
+                    userId:null,
+                    roleId:null
+                }
+
             },
-            /*加载二级菜单集合*/
-            loadConfigedMenus(roleId) {
+            /*加载角色集合*/
+            loadRoles() {
                 this.axios({
                     method: 'get',
-                    url: this.GLOBAL.menu_getMenusByRole_url + "/" + roleId
+                    url: this.GLOBAL.role_getAllRoles_url
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        alert(JSON.stringify(response));
-                        this.configData = response.data.data;
+                        this.roles = response.data.data;
                     } else {
-                        this.$message.info('加载角色列表失败');
+                        this.$message.info('加载角色集合失败');
                     }
                 }.bind(this)).catch(function (error) {
                     alert(error);

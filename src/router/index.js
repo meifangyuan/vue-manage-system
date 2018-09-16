@@ -31,7 +31,7 @@ export default new Router({
                 },
                 {
                     path: '/user',
-                    component: resolve => require(['../components/page/user.vue'], resolve),
+                    component: resolve => require(['../components/page/system/user.vue'], resolve),
                     meta: { title: '用户管理' }
                 },
                 {
