@@ -113,12 +113,8 @@
             return {
                 /*搜索关键词*/
                 key_word:null,
-                /*选中行数*/
-                selectedCount:0,
                 /*选中记录集合*/
                 selectedRows:[],
-                /*加载中*/
-                loading:true,
                 /*表格数据*/
                 tableData:[],
                 /*分页total属性*/
@@ -217,7 +213,6 @@
                         url: this.GLOBAL.menu_delByBatch_url + "/" + ids.join(',')
                     }).then(function (response) {
                         if(response.data.errCode == '0000') {
-                            alert(JSON.stringify(response));
                             // 重新加载表数据
                             this.loadTable({
                                 "pageInfo":this.pageInfo,

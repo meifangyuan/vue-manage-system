@@ -205,7 +205,6 @@
                 for (let i = 0; i < length; i++) {
                     ids.push(this.selectedRows[i].id);
                 }
-                //this.$message.error('删除了' + ids.join(','));
 
                 if(ids != null && ids.length > 0){
                     this.axios({
@@ -246,7 +245,7 @@
                 this.editForm = {
                     id: item.id,
                     name: item.name,
-                    desc: item.desc
+                    description: item.description
                 }
                 this.editVisible = true;
             },
@@ -265,7 +264,7 @@
             },
             /*分页导航*/
             handlePageChange(val) {
-                this.pageInfo.pageNo = val-1;
+                this.pageInfo.pageNo = val;
                 this.getTable({
                     "pageInfo":this.pageInfo,
                     'key_word':this.key_word
@@ -318,7 +317,7 @@
                     url: this.GLOBAL.role_del_url + "/" + this.tableData[this.currentIndex].id
                 }).then(function (response) {
                     if(response.data.errCode == '0000') {
-                        this.$set(this.tableData, this.currentIndex, this.editForm);
+                        this.tableData.splice(this.currentIndex, 1);
                         this.delVisible = false;
                         this.$message.info('删除成功');
                     } else {
@@ -330,7 +329,6 @@
             },
             /*配置角色菜单*/
             change:function(index,row){
-                console.log(index,row);
                 if(row.menuState == true) {
                     this.roleMenuIds.push(row.menuId);
                 } else {
@@ -339,8 +337,6 @@
             },
             /*完成配置*/
             configOk() {
-                alert(JSON.stringify(this.roleMenuIds));
-                alert(this.tableData[this.currentIndex].id);
                 this.configVisible = false;
 
                 // 配置角色菜单权限
